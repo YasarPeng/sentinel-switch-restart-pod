@@ -13,3 +13,18 @@
 |--sentinel-status|status.json| | 记录节点状态的json文件|
 |--interval-time|30| | 探测的间隔时长，单位为s|
 
+# k8s启动说明：
+## 修改地方Deployment如下,只需要启动一个副本即可：
+Image: 这里应该修改为localhost:5000/registry.cn-beijing.aliyuncs.com/laiye-rpa/sentinel:monitor_arm64
+NAMESPACES: 默认即可
+K8S_API_SERVER: 这里应该修改为k8s的api地址和端口
+INTERVAL_TIME：间隔时长，单位为s。
+SENTINEL_ADDRS：这里应该修改为实际的哨兵地址，以,分割
+## 启动服务
+kubectl apply -f sentinel_monitor.Deployment.yaml
+## 启动完成后，使用命令检查服务是否正常运行
+kubectl get deployment sentinel-monitor
+## 检查服务运行日志
+kubectl logs -f --tail 1 deployment/sentinel-monitor
+##正常情况下会每隔30s打印日志出以下日志:
+2024/09/23 07:57:27 Before: 192.168.10.104 Current: 192.168.10.104
