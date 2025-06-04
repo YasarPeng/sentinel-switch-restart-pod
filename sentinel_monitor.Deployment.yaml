@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sentinel-monitor
+  labels:
+    app: sentinel-monitor
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sentinel-monitor
+  template:
+    metadata:
+      labels:
+        app: sentinel-monitor
+      annotations:
+        sidecar.istio.io/inject: "false"
+    spec:
+      nodeSelector:
+        node-role.kubernetes.io/master: ""
+      containers:
+        - name: sentinel-monitor
+          image: registry.cn-beijing.aliyuncs.com/kakapeng/sentinel:monitor_amd64
+          resources:
+            limits:
+              cpu: 20m
+              memory: 50Mi
+            requests:
+              cpu: 10m
+              memory: 20Mi
+          env:
+            - name: NODE_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+            - name: KUBECONFIG
+              value: "/root/config"
+            - name: NAMESPACES
+              value: "entuc,entcmd"
+            - name: K8S_API_SERVER
+              value: "https://$(NODE_IP):6444"
+            - name: INTERVAL_TIME
+              value: "30"
+            - name: SENTINEL_ADDRS
+              value: "192.168.10.102:26379,192.168.10.103:26379,192.168.10.104:26379"
+          volumeMounts:
+            - mountPath: /root/config
+              name: kubeconfig
+      volumes:
+        - hostPath:
+            path: /etc/kubernetes/admin.conf
+            type: ""
+          name: kubeconfig
